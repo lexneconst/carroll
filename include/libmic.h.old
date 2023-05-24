@@ -1,0 +1,56 @@
+
+#ifndef LIBMIC_H
+#define LIBMIC_H
+
+#include <libcrt.h>
+
+#ifndef MGC_SEEK1
+#define MGC_SEEK1     22048
+//#define MGC_SEEK1     24576
+#endif
+
+#define SSC_STREAM_MAX       1024*2
+#define SSC_STREAM_BLOCK     8
+//#define SSVN_TSIZE   (SSC_STREAM_MAX*SSC_STREAM_BLOCK)
+
+#define LIBMGC_POINT         1 // 32/2
+
+#define EXT_C(x)        x
+#define LIBPUBSIZEA     EXT_C(245) // +32 118
+#define LIBPUBSIZEW     EXT_C(25)
+
+struct sound_struct_t {
+    char            *buffer;
+    unsigned int    length;
+
+
+    unsigned int    block;
+    unsigned int    check;
+};
+
+int libmic_init(void);
+int libmic_exit(void);
+
+int libmic_create(struct sound_struct_t *ptr, char *buffer, unsigned int length);
+struct sound_struct_t *libmic_alloc(void);
+struct sound_struct_t *libmic_free(struct sound_struct_t *ptr);
+
+struct sound_struct_t *libmic_surw(char *buffer, unsigned int length);
+
+typedef struct sound_struct_t *(sound_struct_threads)(char *buffer, unsigned int length);
+struct sound_struct_t * sound_detection(sound_struct_threads ctx, char *buf, unsigned int len);
+
+typedef int *(*sound_callback_threads)(char *buffer, unsigned int length);
+
+struct sound_callback
+{
+    int (*callback)(char *buffer, unsigned int length);
+    int (*libmic_init)(void);
+    int (*libmic_exit)(void);
+    struct sound_struct_t *(*libmic_surw)(char *buffer, unsigned int length);
+};
+
+int librecord_wave(sound_callback_threads ctx);
+
+#endif
+

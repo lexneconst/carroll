@@ -1,0 +1,117 @@
+
+#ifndef __LIBMOD0_H
+#define __LIBMOD0_H
+
+#include <libcrt.h>
+
+struct mod_struct_t;
+
+#define DIGEST_LENGTH  16
+
+struct core_addr_t 
+{
+    unsigned int        status;
+    char                digest[DIGEST_LENGTH];    
+    char                *buffer;
+    unsigned int         length;  
+};
+
+struct core_stack_t 
+{
+    unsigned int          count;
+    unsigned int          cread;
+    unsigned int          cwrite;
+    struct core_addr_t   *addr;  
+};
+
+extern 
+struct core_stack_t *sptr_stack;
+
+struct mod_struct_t{
+    char *name;
+    int (*init)(char *path_dev);
+    int (*exit)(void);
+    int (*find)(char *str);
+    int (*xread)(unsigned int id, cstring_t *str);
+    int (*xwrite)(unsigned int id, cstring_t *str);
+    int (*xfree)(cstring_t *str);
+    int (*update)(char *buffer, unsigned int length); 
+};
+
+extern
+struct mod_struct_t *mod_ext;
+
+typedef int (*xmod_getver) (void);
+typedef int (*xmod_init)(struct mod_struct_t *ptr);
+typedef int (*xmod_exit)(struct mod_struct_t *ptr);
+typedef struct mod_struct_t *(*xmod_extw)(void);
+typedef struct mod_struct_t *(*xmod_alloc)(void);
+typedef int (*xmod_ctrl)(struct mod_struct_t *ptr, unsigned int flags, void *string);
+typedef char* (*xmod_name)(void);
+
+#define SMOD_GETVER "zmod_ver"
+#define SMOD_INIT   "zmod_init"
+#define SMOD_EXIT   "zmod_exit"
+#define SMOD_EXTW   "zmod_extw"
+#define SMOD_CTRL   "zmod_ctrl"
+#define SMOD_ALLOC  "zmod_alloc"
+#define SMOD_NAME   "zmod_name"
+
+#define EXT_C(x)    x
+
+#define FMOD_GETVER EXT_C(zmod_ver)
+#define FMOD_INIT   EXT_C(zmod_init)
+#define FMOD_EXIT   EXT_C(zmod_exit)
+#define FMOD_EXTW   EXT_C(zmod_extw)
+#define FMOD_CTRL   EXT_C(zmod_ctrl)
+#define FMOD_ALLOC  EXT_C(zmod_alloc)
+#define FMOD_NAME   EXT_C(zmod_name)
+#define FMOD_FREE   EXT_C(zmod_free)
+
+int FMOD_GETVER(void);
+char *FMOD_NAME(void);
+int FMOD_INIT(struct mod_struct_t *ptr);
+int FMOD_EXIT(struct mod_struct_t *ptr);
+struct mod_struct_t *FMOD_EXTW(void);
+struct mod_struct_t *FMOD_ALLOC(void);
+struct mod_struct_t *FMOD_FREE(struct mod_struct_t *ptr);
+int FMOD_CTRL(struct mod_struct_t *ptr, unsigned int flags, void *string);
+//char* mod_name(void);
+
+struct mod_addr_t
+{
+    unsigned int seid;
+    
+    void *libhandle;
+
+    char        *xm_name;
+    xmod_getver  xm_getver;
+    xmod_init    xm_init;
+    xmod_exit    xm_exit;
+    xmod_extw    xm_extw;
+    xmod_alloc   xm_alloc;
+    xmod_ctrl    xm_ctrl;
+    struct mod_addr_t *next;
+};
+struct mod_stack_t
+{
+    unsigned int       count;
+    struct mod_addr_t *addr;
+};
+
+#define STACK_READ   1
+#define STACK_WRITE  2
+#define STACK_UPDATE 3
+
+struct mod_stack_t *mod_alloc(void);
+int mod_create(struct mod_stack_t *ptr, unsigned int cnt);
+int mod_update(struct mod_stack_t *ptr, char *libmod);
+int mod_free(struct mod_stack_t *ptr);
+int mod_print(struct mod_stack_t *ptr);
+int mod_post(struct mod_stack_t *ptr, char *find_mod, unsigned int ctrl, void* value);
+
+#endif
+
+
+
+

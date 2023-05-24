@@ -1,0 +1,1 @@
+cmd_/home/lexne/casenium_carroll/driver/qtl10/Module.symvers :=  sed 's/ko$$/o/'  /home/lexne/casenium_carroll/driver/qtl10/modules.order | scripts/mod/modpost  -a    -o /home/lexne/casenium_carroll/driver/qtl10/Module.symvers -e -i Module.symvers -T - 

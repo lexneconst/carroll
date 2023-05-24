@@ -1,0 +1,1 @@
+cmd_/home/lexne/casenium_carroll/driver/ice10/modules.order := {   echo /home/lexne/casenium_carroll/driver/ice10/../../bin/driver/xice10.ko; :; } > /home/lexne/casenium_carroll/driver/ice10/modules.order

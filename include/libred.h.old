@@ -1,0 +1,79 @@
+
+#ifndef LIBRED_H
+#define LIBRED_H
+
+#include <pthread.h>
+
+#include "libcrt.h"
+#include "libmic.h"
+#include "libmod0.h"
+
+#include "ctl10.h"
+
+#define FDEV_BITS   64
+
+#define CORE_BITS   2048
+
+typedef int *(*librmc_callback_threads)(void *addr, unsigned int cnt, unsigned int pyt);
+
+typedef struct sound_struct_t cstring_t;
+
+struct librmc_addr_t
+{
+    char                   *fdev;
+    unsigned char          *data;
+
+    unsigned int            num;
+    unsigned short          hex;
+
+    struct librmc_addr_t   *next;
+};
+
+struct librmc_stack_t
+{
+    char *name;
+    char *error_s;
+    unsigned int    sector;
+    unsigned int    count;
+    struct librmc_addr_t  *addr;
+
+    librmc_callback_threads  thread;
+};
+
+extern
+struct librmc_stack_t *sptr_core;
+
+int librmc_init(void);
+int librmc_proc(librmc_callback_threads thread);
+int librmc_exit(void);
+struct librmc_stack_t * librmc_free(struct librmc_stack_t *ptr);
+
+int librmc_update(char *dev_name, unsigned char *data, unsigned int number);
+unsigned short librmc_find(unsigned short code, unsigned short rand_s);
+
+extern
+unsigned int rmc_run_state;
+int librmc_runstate(void);
+int librmc_poweroff(void);
+
+extern
+unsigned int rmc_count;
+extern
+unsigned int rmc_free;
+unsigned int librmc_count();
+unsigned int librmc_cfree();
+
+
+struct dev_t{
+    int fd;  
+};
+typedef struct dev_t xdev_t;
+
+xdev_t *libdev_open(char *dev);
+int libdev_read(xdev_t * dev, char *buffer, unsigned int length);
+int libdev_write(xdev_t * dev, char *buffer, unsigned int length);
+int libdev_ioctl(xdev_t * dev, unsigned int flags, unsigned int *value); 
+xdev_t *libdev_close(xdev_t *dev);
+
+#endif
+
