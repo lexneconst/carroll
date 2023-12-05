@@ -4,8 +4,7 @@ git config --global user.name "lexneconst"
 git add . 
 git add --all
 git status
-git commit -am 'carroll v1.09x'
+git commit -am 'carroll v1.09z'
 git remote add origin 'https://github.com/lexneconst/carroll.git'
-git pull --rebase origin main
 git push -u origin main
 
