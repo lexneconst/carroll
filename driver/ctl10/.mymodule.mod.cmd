@@ -1,0 +1,1 @@
+cmd_/home/lexne/casenium_carroll/driver/ctl10/mymodule.mod := printf '%s\n'   ctl10.o | awk '!x[$$0]++ { print("/home/lexne/casenium_carroll/driver/ctl10/"$$0) }' > /home/lexne/casenium_carroll/driver/ctl10/mymodule.mod

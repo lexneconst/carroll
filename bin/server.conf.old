@@ -1,0 +1,13 @@
+[settings]
+server=192.168.50.150
+port=3260
+listen=100
+timeout=1000
+
+module=/etc/carroll/mods
+mydata=/var/lib/carroll/data
+temp=/tmp/carroll
+logs=/var/log/carroll
+
+
+

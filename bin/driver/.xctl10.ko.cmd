@@ -1,0 +1,1 @@
+cmd_/home/lexne/casenium_carroll/driver/ctl10/../../bin/driver/xctl10.ko := ld -r  -m elf_x86_64 -z noexecstack   --build-id=sha1  -T scripts/module.lds -o /home/lexne/casenium_carroll/driver/ctl10/../../bin/driver/xctl10.ko /home/lexne/casenium_carroll/driver/ctl10/../../bin/driver/xctl10.o /home/lexne/casenium_carroll/driver/ctl10/../../bin/driver/xctl10.mod.o;  true

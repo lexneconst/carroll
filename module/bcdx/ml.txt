@@ -1,0 +1,58 @@
+#include <stdio.h>
+
+#define LEARNING_RATE 0.1
+#define EPOCHS 100
+
+double inputs[4][2] = {
+    {0, 0},
+    {0, 1},
+    {1, 0},
+    {1, 1}
+};
+
+int outputs[4] = {0, 0, 0, 1};
+
+double weights[2] = {0, 0};
+double bias = 0;
+
+int activation(double sum) {
+    return sum > 0 ? 1 : 0;
+}
+
+void train() {
+    for (int i = 0; i < EPOCHS; i++) {
+        for (int j = 0; j < 4; j++) {
+            double weighted_sum = inputs[j][0] * weights[0] + inputs[j][1] * weights[1] + bias;
+            int predicted = activation(weighted_sum);
+            int error = outputs[j] - predicted;
+            
+            weights[0] += LEARNING_RATE * error * inputs[j][0];
+            weights[1] += LEARNING_RATE * error * inputs[j][1];
+            bias += LEARNING_RATE * error;
+        }
+    }
+}
+
+int main() {
+    train();
+
+    printf("Trained Weights: w1 = %lf, w2 = %lf\n", weights[0], weights[1]);
+    printf("Trained Bias: b = %lf\n", bias);
+
+    // Test the trained model with new data
+    int test_inputs[4][2] = {
+        {0, 0},
+        {0, 1},
+        {1, 0},
+        {1, 1}
+    };
+
+    printf("Predictions:\n");
+    for (int i = 0; i < 4; i++) {
+        double result = test_inputs[i][0] * weights[0] + test_inputs[i][1] * weights[1] + bias;
+        printf("%d AND %d = %d\n", test_inputs[i][0], test_inputs[i][1], activation(result));
+    }
+
+    return 0;
+}
+

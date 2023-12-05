@@ -1,0 +1,11 @@
+gdb -q -batch -ex run -ex backtrace -ex up ./crgui
+
+set pagination off
+set logging on
+thread apply all bt
+detach
+
+up 
+where
+info locals
+

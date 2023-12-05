@@ -1,0 +1,1 @@
+cmd_/home/lexne/casenium_carroll/driver/ctl10/xctl10.o := ld  -m elf_x86_64 -z noexecstack     -r -o /home/lexne/casenium_carroll/driver/ctl10/xctl10.o @/home/lexne/casenium_carroll/driver/ctl10/xctl10.mod 

@@ -1,0 +1,10 @@
+#!/bin/sh
+
+get_current_directory() {
+    current_file="${PWD}/"
+ 
+}
+
+CWD=$(get_current_directory)
+echo "$CWD"
+#export LD_LIBRARY_PATH=$(PROJECT_DIR):$LD_LIBRARY_PATH

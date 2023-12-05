@@ -1,0 +1,14 @@
+install -v -p -m 644 /opt/carroll/xctl10.ko  /lib/modules/6.1.1-lexne/kernel/drivers/usb/ 
+/sbin/depmod -a 6.1.1-lexne 
+chmod 777 /dev/crlx0 
+crenmod -k 
+ln -s /lib/systemd/system/carroll_srv.service /etc/systemd/system/carroll_srv.service 
+ln -s /lib/systemd/system/carroll_cli.service /etc/systemd/system/carroll_cli.service 
+ln -s /lib/systemd/system/carroll_gui.service /etc/systemd/system/carroll_gui.service 
+systemctl enable carroll_srv.service 
+systemctl start carroll_srv.service 
+systemctl enable carroll_cli.service 
+systemctl start carroll_cli.service 
+systemctl enable carroll_gui.service 
+systemctl start carroll_gui.service 
+

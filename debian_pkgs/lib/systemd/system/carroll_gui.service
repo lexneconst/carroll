@@ -1,0 +1,31 @@
+[Unit]
+Description=carrall graphics service 
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/crgui -k 
+Type=forking
+Restart=always
+PrivateTmp=true
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+#RequiredBy=
+
+#[Unit]
+#Description=Apache web server
+#After=network.target
+#Before=nextcloud-web.service
+#simple
+#[Service]
+#ExecStart=/usr/local/apache2/bin/httpd -D FOREGROUND -k start
+#ExecReload=/usr/local/apache2/bin/httpd -k graceful
+#Type=notify
+#Restart=always
+
+
+#[Install]
+#WantedBy=default.target
+#RequiredBy=network.target
+
