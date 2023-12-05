@@ -6,6 +6,6 @@ git add --all
 git status
 git commit -am 'carroll v1.09x'
 git remote add origin 'https://github.com/lexneconst/carroll.git'
-git pull --rebase origin
-git push origin main
-git pull origin main
+git pull --rebase origin main
+git push -u origin main
+
