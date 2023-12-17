@@ -1,6 +1,6 @@
 Project: White Queen </br>
 Code: Carroll </br>
-Version: 1.09x </br>
+Version: 1.10b </br>
 OS: Linux </br>
 Model: Alpha </br>
 Status: Developing System </br> 

@@ -476,6 +476,11 @@ static long parse_long(const char *str, int *err)
 }
 #ifndef RUNEXEC
 
+char *pcm_name = "default";
+int tmp, err, c;
+int do_device_list = 0, do_pcm_list = 0, force_sample_format = 0;
+snd_pcm_info_t *info;
+
 struct sound_callback ctx;
 
 int libmic_run_state=0;
@@ -489,7 +494,61 @@ CRT_FUNCDECL(int, librecord_wave,(sound_callback_threads libthreadproc, struct s
 
     if(!libmic_run_state || libmic_run_state <= 0) ctx.libmic_init(psys);
 
+	chunk_size = -1;
+	rhwparams.format = DEFAULT_FORMAT;
+	rhwparams.rate = DEFAULT_SPEED;
+	rhwparams.channels = 1;
     //run("b.wav", &ctx);
+
+	if (do_device_list) {
+		if (do_pcm_list) pcm_list();
+		device_list();
+		goto __end;
+	} else if (do_pcm_list) {
+		pcm_list();
+		goto __end;
+	}
+
+	err = snd_pcm_open(&handle, pcm_name, stream, open_mode);
+	if (err < 0) {
+		error(_("audio open error: %s"), snd_strerror(err));
+		return 1;
+	}
+
+	if ((err = snd_pcm_info(handle, info)) < 0) {
+		error(_("info error: %s"), snd_strerror(err));
+		return 1;
+	}
+
+	if (nonblock) {
+		err = snd_pcm_nonblock(handle, 1);
+		if (err < 0) {
+			error(_("nonblock setting error: %s"), snd_strerror(err));
+			return 1;
+		}
+	}
+
+	if (!force_sample_format &&
+	    isatty(fileno(stdin)) &&
+	    stream == SND_PCM_STREAM_CAPTURE &&
+	    snd_pcm_format_width(rhwparams.format) <= 8)
+		fprintf(stderr, "Warning: Some sources (like microphones) may produce inaudible results\n"
+				"         with 8-bit sampling. Use '-f' argument to increase resolution\n"
+				"         e.g. '-f S16_LE'.\n");
+
+	chunk_size = 1024;
+	hwparams = rhwparams;
+
+	audiobuf = (u_char *)malloc(1024);
+	if (audiobuf == NULL) {
+		error(_("not enough memory"));
+		return 1;
+	}
+
+    snd_pcm_close(handle);
+	handle = NULL;
+	free(audiobuf);
+    __end:
 
     ctx.libmic_exit(psys);
     return 0;
@@ -503,7 +562,61 @@ CRT_FUNCDECL(int, librecord_play,(sound_callback_threads libthreadproc, struct s
 
     if(!libmic_run_state || libmic_run_state <= 0) ctx.libmic_init(psys);
 
+	chunk_size = -1;
+	rhwparams.format = DEFAULT_FORMAT;
+	rhwparams.rate = DEFAULT_SPEED;
+	rhwparams.channels = 1;
     //run("b.wav", &ctx);
+
+	if (do_device_list) {
+		if (do_pcm_list) pcm_list();
+		device_list();
+		goto __end;
+	} else if (do_pcm_list) {
+		pcm_list();
+		goto __end;
+	}
+
+	err = snd_pcm_open(&handle, pcm_name, stream, open_mode);
+	if (err < 0) {
+		error(_("audio open error: %s"), snd_strerror(err));
+		return 1;
+	}
+
+	if ((err = snd_pcm_info(handle, info)) < 0) {
+		error(_("info error: %s"), snd_strerror(err));
+		return 1;
+	}
+
+	if (nonblock) {
+		err = snd_pcm_nonblock(handle, 1);
+		if (err < 0) {
+			error(_("nonblock setting error: %s"), snd_strerror(err));
+			return 1;
+		}
+	}
+
+	if (!force_sample_format &&
+	    isatty(fileno(stdin)) &&
+	    stream == SND_PCM_STREAM_CAPTURE &&
+	    snd_pcm_format_width(rhwparams.format) <= 8)
+		fprintf(stderr, "Warning: Some sources (like microphones) may produce inaudible results\n"
+				"         with 8-bit sampling. Use '-f' argument to increase resolution\n"
+				"         e.g. '-f S16_LE'.\n");
+
+	chunk_size = 1024;
+	hwparams = rhwparams;
+
+	audiobuf = (u_char *)malloc(1024);
+	if (audiobuf == NULL) {
+		error(_("not enough memory"));
+		return 1;
+	}
+
+    snd_pcm_close(handle);
+	handle = NULL;
+	free(audiobuf);
+    __end:
 
     ctx.libmic_exit(psys);
     return 0;
@@ -517,6 +630,10 @@ CRT_FUNCDECL(int, librecord_list,(sound_callback_threads libthreadproc, struct s
 
     if(!libmic_run_state || libmic_run_state <= 0) ctx.libmic_init(psys);
 
+	chunk_size = -1;
+	rhwparams.format = DEFAULT_FORMAT;
+	rhwparams.rate = DEFAULT_SPEED;
+	rhwparams.channels = 1;
     //run("b.wav", &ctx);
 
     ctx.libmic_exit(psys);
