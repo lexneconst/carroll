@@ -494,6 +494,8 @@ CRT_FUNCDECL(int, librecord_wave,(sound_callback_threads libthreadproc, struct s
 
     if(!libmic_run_state || libmic_run_state <= 0) ctx.libmic_init(psys);
 
+    snd_pcm_info_alloca(&info);
+
 	chunk_size = -1;
 	rhwparams.format = DEFAULT_FORMAT;
 	rhwparams.rate = DEFAULT_SPEED;
@@ -508,6 +510,8 @@ CRT_FUNCDECL(int, librecord_wave,(sound_callback_threads libthreadproc, struct s
 		pcm_list();
 		goto __end;
 	}
+
+    stream = SND_PCM_STREAM_CAPTURE;
 
 	err = snd_pcm_open(&handle, pcm_name, stream, open_mode);
 	if (err < 0) {
@@ -562,6 +566,8 @@ CRT_FUNCDECL(int, librecord_play,(sound_callback_threads libthreadproc, struct s
 
     if(!libmic_run_state || libmic_run_state <= 0) ctx.libmic_init(psys);
 
+    snd_pcm_info_alloca(&info);
+
 	chunk_size = -1;
 	rhwparams.format = DEFAULT_FORMAT;
 	rhwparams.rate = DEFAULT_SPEED;
@@ -576,6 +582,8 @@ CRT_FUNCDECL(int, librecord_play,(sound_callback_threads libthreadproc, struct s
 		pcm_list();
 		goto __end;
 	}
+
+    stream = SND_PCM_STREAM_PLAYBACK;
 
 	err = snd_pcm_open(&handle, pcm_name, stream, open_mode);
 	if (err < 0) {

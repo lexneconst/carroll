@@ -2,6 +2,7 @@
 #define LIBCRT_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <dlfcn.h> 
 #include <time.h>
 #include <fcntl.h>
@@ -18,6 +19,20 @@
 #include <pthread.h>
 #include <signal.h>
 #include <alsa/asoundlib.h>
+
+// superset of unistd, same
+
+//Bluetooth
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/rfcomm.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/hci_lib.h>
+#include <bluetooth/sdp.h>
+#include <bluetooth/sdp_lib.h>
+#include <bluetooth/sco.h>
+
+//socket
+#include <sys/socket.h>
 
 #include <config.h>
 
@@ -930,6 +945,52 @@ zqtw_block_t *libqtw_block(uint32_t code);
 zqtw_block_t *libqtw_set(zqtw_block_t *p, uint32_t code);
 int libqtw_generator(uint32_t *code);
 int libqtw_bits(void);
+
+extern int libvbt_state;
+
+struct libvbt_list_t
+{
+    char addr[18];
+    char name[248];  
+    char device[256];
+    struct libvbt_list_t *next;  
+};
+
+struct libvbt_t 
+{
+    int s;
+    int sock;
+    struct sockaddr_rc address;
+
+    char addr[18];
+    char name[248];
+    char device[256];
+
+    inquiry_info *ii;
+    
+    int status;
+
+    unsigned int count;
+    struct libvbt_list_t *list; 
+};
+
+
+typedef int (*callback_handle_t)(char *buffer, unsigned int len);
+
+int libvbt_info(struct libvbt_t *st);
+int libvbt_list(struct libvbt_t *st);
+int libvbt_init(struct libvbt_t *st);
+int libvbt_select(struct libvbt_t *st,int fx);
+int libvbt_write(struct libvbt_t *st, char *buffer, unsigned int len);
+int libvbt_read(struct libvbt_t *st, char *buffer, unsigned int len);
+int libvbt_callback(struct libvbt_t *st, callback_handle_t cb);
+int libvbt_close(struct libvbt_t *st);
+int libvbt_update(struct libvbt_t *st, unsigned int p);
+int libvbt_test(struct libvbt_t *st, unsigned int p);
+int libvbt_micp(struct libvbt_t *st, unsigned int list);
+
+
+int libvbt_smcl(struct libvbt_t *st);
 
 #endif
 

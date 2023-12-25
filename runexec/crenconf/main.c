@@ -8,6 +8,8 @@ char      *opt_arg, *opt_key;
 int usage(){
     printf("run service or debian install commanline [xbin -k] \n");
     printf("run program for not install commanline [xbin] \n");
+    printf("\targs = [kernel] -k [current] -s [file] -f [code] -c  \n");
+    printf("\ttest = -s -f test.conf -c 5555 \n");
 }
 
 int load_dir(uint32_t flags){

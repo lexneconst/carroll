@@ -40,7 +40,7 @@ CONF_INC=-I$(PROJECT_DIR)
 LIBERR= -Werror=unused-const-variable=0
 DFLAGS=-c -Wall -fpic $(TRAY_LDFLAGS)
 LIBDBG= -O0 -ggdb3 -g
-CFLAGS= $(CONF_INC) $(LIBDBG) -DEXEC_PROC=1 $(LIBERR) $(TRAY_CFLAGS) -DUSE_GTK3 $(AFLAGS) 
+CFLAGS= $(CONF_INC) $(LIBDBG) -DEXEC_PROC=1 $(LIBERR) $(TRAY_CFLAGS) -DUSE_GTK3 $(AFLAGS) -lbluetooth
 LIBCRT= -lcarroll0 -pthread -lasound -ldl -lm -lgcc
 LIBRMD= 
 LIBS0 = $(LIBCRT)
@@ -620,7 +620,6 @@ clean: xclean
 	rm -rf $(LIBCPX)/libarc/*.o
 	rm -rf $(OBJLIBCLRMOD_SRC)
 	rm -rf $(OBJLIBOLEMOD_SRC)
-	rm -rf $(OBJLIBEXEMOD_SEC)
 #	rm -rf libmod/gat0/*.o
 #	rm -rf libmod/cor0/*.o
 #	rm -rf libmod/log0/*.o
@@ -636,6 +635,8 @@ clean: xclean
 	rm -rf $(OUTPUT_DIR)/tmp/*.tmp
 	rm -rf *.deb	
 	rm -rf $(PACKAGE_DIR)
+	rm -rf MD5SUMS
+	rm -rf SHA256SUMS
 exp:
 	LD_LIBRARY_PATH=$(PROJECT_DIR)/bin:$(LD_LIBRARY_PATH)
 	export LD_LIBRARY_PATH

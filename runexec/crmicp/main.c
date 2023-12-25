@@ -9,6 +9,8 @@ uint32_t  opt_num=1,opt_len=0;
 uint32_t close_final = 1;
 
 zconfig_server_t iserver;
+struct libvbt_t *ivbthc;
+struct libvbt_t *ivbths;
 
 int usage(){
     printf("run service or debian install commanline [xbin -k] \n");
@@ -33,13 +35,13 @@ int load_config(uint32_t flags){
     CCNULL(iserver.timeout);
 
     if(flags == 1){
-        ret = _conf_load(_conf_config(1), "server.conf", cserver_mod, &iserver);  
+        ret = _conf_load(_conf_config(1), "client.conf", cserver_mod, &iserver);  
 
         strcpy(szdir, "null");
         CCNEW(iserver.szdir , szdir);     
         
     }else{
-        ret = _conf_load(_conf_config(0), "server.conf", cserver_mod, &iserver); 
+        ret = _conf_load(_conf_config(0), "client.conf", cserver_mod, &iserver); 
 
         getcwd(szdir, sizeof(szdir));
         CCNEW(iserver.szdir , szdir);
@@ -60,15 +62,52 @@ pthread_t threadid;
 int sound_callback_threads_ctx(char *buffer, unsigned int length){
     
     printf("handle : %x - %d \n", buffer, length);
+
+    cwrite(&iserver, buffer, length);
+
     return 0;
 }
 
 void thread_procw(void*args){
     //printf("initialized thread \r\n");
-   
-    librecord_wave(sound_callback_threads_ctx, psys);
+    int vbid=0;
+    int c;
+    //
+    libsck_client(&iserver);
+    
+    libsck_info(&iserver);
+    printf("select mode record : 0 = [microphone], 1++ = [bluetooth] : ");
+    scanf("%d", &vbid);
+    if(vbid == 0){ // microphine mode
+        librecord_wave(sound_callback_threads_ctx, psys);
+    }else{ // bluetooth mode
+        
+        vbid = libvbt_list(&ivbthc);   
+        //printf("select list device bluetooth to record number %d : ", vbid);
+        
+        vbid = libvbt_micp(&ivbthc, vbid);
+        printf("select list device bluetooth to record number %d : \n", vbid);
+        if(vbid > 0 && libvbt_select(&ivbthc, vbid)){
+             libvbt_init(&ivbthc);
+             libvbt_close(&ivbthc);
+             printf("close device bluetooth to record number %d : \n", vbid);   
+             libvbt_callback(&ivbthc, sound_callback_threads_ctx);
+        }
+       
+    }
+    //librecord_wave(sound_callback_threads_ctx, psys);
     
     while(libcrt_run()){
+        libvbt_poweroff();
+        sleep(1);
+    }
+}
+
+void thread_procm(void*args){
+
+    libvbt_smcl(&ivbths);
+    while(libcrt_run()){
+        libvbt_poweroff();
         sleep(1);
     }
 }
@@ -203,6 +242,15 @@ int main(int argc, char *argv[])
         goto HDC;    
     }
     
+    err = pthread_create(&threadid, NULL, &thread_procm, (void*)argv);
+	if (err != 0)
+ 	{
+	    //#ifdef DEBUG_H
+        printf("can't create thread :[%s]\n", strerror(err));
+        //#endif
+    }
+    pthread_getattr_np(threadid, &attr);
+    pthread_attr_getstack(&attr, &stack_addr, &stack_size);
 
     err = pthread_create(&threadid, NULL, &thread_procw, (void*)argv);
 	if (err != 0)

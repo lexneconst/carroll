@@ -11,6 +11,31 @@ int libsck_poweroff(void)
     libsck_state = 0;
 }
 
+int libsck_info(zconfig_server_t *config){
+    char buffer[256];
+    struct sockaddr_in  ca;
+    int sock_len = sizeof(ca);
+    
+    if(getpeername(config->fds, (struct sockaddr*)&ca, &sock_len)!=-1){
+	    //buffer = (char *)VirtualAlloc(NULL, 128, MEM_COMMIT, PAGE_READWRITE);
+		//if(NULL!= buffer){
+	      sprintf(buffer, "%s:%d", inet_ntoa(ca.sin_addr), ntohs(ca.sin_port));
+	      //return 1;
+          printf("-remote : %s \n", buffer);
+	      //CCNEW(remoteaddr, buffer);
+	    //}	
+	}
+	if(getsockname(config->fds, (struct sockaddr*)&ca, &sock_len)!=-1){
+	    //buffer = (char *)VirtualAlloc(NULL, 128, MEM_COMMIT, PAGE_READWRITE);
+		//if(NULL!= buffer){
+	      sprintf(buffer, "%s:%d", inet_ntoa(ca.sin_addr), ntohs(ca.sin_port));
+	      printf("-server : %s \n", buffer);
+          //CCNEW(serveraddr, buffer);
+	      //return 1;
+	    //}	
+	}
+}
+
 int libsck_server(zconfig_server_t *config)
 {
     struct sockaddr_in  sa;
@@ -92,9 +117,12 @@ int libsck_client(zconfig_server_t *config)
         fatal("connection socket", __FILE__, __FUNCTION__, __LINE__);
         goto END;    
     }
-    printf("Server: [%s][%s]\n", CCSHOW(config->address),CCSHOW(config->port));
+   
     ret = 1;
+ 
     END:
+        printf("Server: [%s][%s]\n", CCSHOW(config->address),CCSHOW(config->port));
+
     return ret;
 }
 int libsck_callback(zconfig_server_t *config, socket_callback_threads_ctx ctx)

@@ -184,6 +184,8 @@ void thread_procw(void*args){
         librecord_wave(sound_callback_threads_ctx, psys);
     }else{
         libsck_server(&iserver);
+        libsck_info(&iserver);
+
         libsck_callback(&iserver, sound_callback_threads_ctx);    
     }    
     while(libcrt_run()){
