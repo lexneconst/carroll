@@ -1,6 +1,6 @@
 #include <libcrt.h>
 
-CRT_FUNCDECL(void, hexdump,(const unsigned char *src, size_t len, unsigned long fp))
+CRT_FUNCDECL(void, zhexdump,(const unsigned char *src, size_t len, unsigned long fp))
 {
 	static const unsigned char hex[]	= "0123456789abcdef";
 	static const unsigned char tmpl[]	= "                                                    |                |\n";

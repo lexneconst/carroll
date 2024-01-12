@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/rfcomm.h>
+
+#define CHANNEL 1  // RFCOMM channel to use
+
+int main() {
+    struct sockaddr_rc loc_addr = { 0 }, rem_addr = { 0 };
+    char buffer[1024];
+    int s, client, bytes_read;
+
+    // Create a Bluetooth socket
+    s = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    if (s == -1) {
+        perror("Socket error");
+        return 1;
+    }
+
+    // Set the connection parameters
+    loc_addr.rc_family = AF_BLUETOOTH;
+    loc_addr.rc_bdaddr = *BDADDR_ANY;
+    loc_addr.rc_channel = (uint8_t)CHANNEL;
+
+    // Bind the socket to the local address
+    if (bind(s, (struct sockaddr *)&loc_addr, sizeof(loc_addr)) == -1) {
+        perror("Bind error");
+        close(s);
+        return 1;
+    }
+
+    // Listen for incoming connections
+    listen(s, 1);
+
+    printf("Waiting for incoming connections...\n");
+
+    // Accept a connection
+    client = accept(s, (struct sockaddr *)&rem_addr, sizeof(rem_addr));
+    if (client == -1) {
+        perror("Accept error");
+        close(s);
+        return 1;
+    }
+
+    // Get the Bluetooth address of the connected device
+    ba2str(&rem_addr.rc_bdaddr, buffer);
+    printf("Accepted connection from %s\n", buffer);
+
+    // Read data from the client
+    bytes_read = read(client, buffer, sizeof(buffer));
+    if (bytes_read == -1) {
+        perror("Read error");
+    } else {
+        printf("Received data: %s\n", buffer);
+    }
+
+    // Close the sockets
+    close(client);
+    close(s);
+
+    return 0;
+}
+

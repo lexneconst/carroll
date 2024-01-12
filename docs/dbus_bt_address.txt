@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <string.h>
+#include <dbus/dbus.h>
+
+#define BLUEZ_SERVICE "org.bluez"
+#define ADAPTER_INTERFACE "org.freedesktop.DBus.Properties"
+#define ADAPTER_PROPERTY "Devices"
+#define DEVICE_INTERFACE "org.freedesktop.DBus.Properties"
+#define DEVICE_PROPERTY "Address"
+
+int main() {
+    DBusError err;
+    DBusConnection *conn;
+    DBusMessage *msg;
+    DBusMessageIter iter;
+    DBusMessageIter arrayIter;
+    DBusMessageIter variantIter;
+    char *device_path;
+    char *device_address;
+
+    // Initialize the D-Bus error object
+    dbus_error_init(&err);
+
+    // Connect to the system bus
+    conn = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+    if (dbus_error_is_set(&err)) {
+        fprintf(stderr, "D-Bus connection error: %s\n", err.message);
+        dbus_error_free(&err);
+        return 1;
+    }
+
+    // Get the object path of the Bluetooth adapter
+    const char *adapter_path = "/org/bluez/hci0";
+
+    // Create a message to get the adapter properties
+    msg = dbus_message_new_method_call(BLUEZ_SERVICE, adapter_path, ADAPTER_INTERFACE, "Get");
+    if (!msg) {
+        fprintf(stderr, "Error creating D-Bus message\n");
+        return 1;
+    }
+
+    // Append the interface, property, and interface to the message
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &ADAPTER_INTERFACE, DBUS_TYPE_STRING, &ADAPTER_PROPERTY, DBUS_TYPE_INVALID);
+
+    // Send the message and get a reply
+    if (!dbus_connection_send_with_reply_and_block(conn, msg, -1, &err)) {
+        fprintf(stderr, "D-Bus method call error: %s\n", err.message);
+        dbus_error_free(&err);
+        return 1;
+    }
+
+    // Parse the reply
+    if (!dbus_message_iter_init(msg, &iter)) {
+        fprintf(stderr, "Error initializing D-Bus message iterator\n");
+        return 1;
+    }
+
+    // Iterate through the returned properties
+    while (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_INVALID) {
+        dbus_message_iter_recurse(&iter, &variantIter);
+
+        if (dbus_message_iter_get_arg_type(&variantIter) == DBUS_TYPE_ARRAY) {
+            dbus_message_iter_recurse(&variantIter, &arrayIter);
+            while (dbus_message_iter_get_arg_type(&arrayIter) == DBUS_TYPE_OBJECT_PATH) {
+                dbus_message_iter_get_basic(&arrayIter, &device_path);
+
+                // Create a message to get the device properties
+                DBusMessage *deviceMsg = dbus_message_new_method_call(BLUEZ_SERVICE, device_path, DEVICE_INTERFACE, "Get");
+                if (!deviceMsg) {
+                    fprintf(stderr, "Error creating D-Bus message for device\n");
+                    return 1;
+                }
+
+                // Append the interface, property, and interface to the device message
+                dbus_message_append_args(deviceMsg, DBUS_TYPE_STRING, &DEVICE_INTERFACE, DBUS_TYPE_STRING, &DEVICE_PROPERTY, DBUS_TYPE_INVALID);
+
+                // Send the device message and get a reply
+                if (!dbus_connection_send_with_reply_and_block(conn, deviceMsg, -1, &err)) {
+                    fprintf(stderr, "D-Bus method call error for device: %s\n", err.message);
+                    dbus_error_free(&err);
+                    return 1;
+                }
+
+                // Parse the device reply
+                DBusMessageIter deviceIter;
+                if (!dbus_message_iter_init(deviceMsg, &deviceIter)) {
+                    fprintf(stderr, "Error initializing D-Bus message iterator for device\n");
+                    return 1;
+                }
+
+                // Iterate through the device properties
+                while (dbus_message_iter_get_arg_type(&deviceIter) != DBUS_TYPE_INVALID) {
+                    dbus_message_iter_recurse(&deviceIter, &variantIter);
+
+                    if (dbus_message_iter_get_arg_type(&variantIter) == DBUS_TYPE_STRING) {
+                        dbus_message_iter_get_basic(&variantIter, &device_address);
+                        printf("Device Address: %s\n", device_address);
+                        break;
+                    }
+
+                    dbus_message_iter_next(&deviceIter);
+                }
+
+                // Free resources for device message
+                dbus_message_unref(deviceMsg);
+
+                dbus_message_iter_next(&arrayIter);
+            }
+        }
+
+        dbus_message_iter_next(&iter);
+    }
+
+    // Free resources for adapter message
+    dbus_message_unref(msg);
+    dbus_connection_unref(conn);
+
+    return 0;
+}
+

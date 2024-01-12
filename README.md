@@ -1,6 +1,6 @@
 Project: White Queen </br>
 Code: Carroll </br>
-Version: 1.10x </br>
+Version: 1.12a </br>
 OS: Linux </br>
 Model: Alpha </br>
 Status: Developing System </br> 
@@ -15,10 +15,7 @@ Location : Thailand </br>
 Run server </br>
 enable device config </br>
 root@host: sudo make install </br>
-create library path </br>
 file readme.txt </br>
-export LD_LIBRARY_PATH=$(pwd):LD_LIBRARY_PATH </br>
-enable module config </br>
 +crenmod [options] </br>
     - crenmod     (empty parameter to default current directory) </br>
     - crenmod -k  (-k parameter to load system directory) </br> 
@@ -57,12 +54,19 @@ Start Carroll </br>
 1. Enable Module Config [crenmod] </br>
 2. Install Device && Enable Device </br> 
 3. Start Server Microphone  </br>
+4. terminal run no install : export LD_LIBRARY_PATH=$(pwd):LD_LIBRARY_PATH
     - Load Config </br>
     - Load Module </br>
     - Load Core </br>
     - Create Server or Load Microphone </br>
     :: Initialized </br>
 </br>
+</br>
+Start Server Carroll </br>
+root@host: ./crserv -s </br>
+</br>
+Start Microphone Carroll </br>
+root@host: ./crmicp -f 1 </br>
 </br>
 Poweroff Carroll </br>
 root@host: ./croffw </br>

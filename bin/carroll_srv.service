@@ -3,7 +3,7 @@ Description=carrall server service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/crserv -k 
+ExecStart=/usr/bin/crserv -k -s
 Type=forking
 Restart=always
 PrivateTmp=true

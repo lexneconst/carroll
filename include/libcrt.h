@@ -19,9 +19,16 @@
 #include <pthread.h>
 #include <signal.h>
 #include <alsa/asoundlib.h>
-
+#include <sys/syscall.h>
+#include <termios.h>
+#include <dbus/dbus.h>
+#include <getopt.h> 
+#include <libudev.h>
+#include <stdbool.h>
 // superset of unistd, same
-
+#include <syslog.h>
+#include <linux/sockios.h>
+#include <glib.h>
 //Bluetooth
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/rfcomm.h>
@@ -30,11 +37,33 @@
 #include <bluetooth/sdp.h>
 #include <bluetooth/sdp_lib.h>
 #include <bluetooth/sco.h>
-
+#include <bluetooth/l2cap.h>
 //socket
 #include <sys/socket.h>
 
 #include <config.h>
+
+#include "bt.h"
+#include "btdev.h"
+#include "bthost.h"
+#include "mgmt.h"
+#include "hciemu.h"
+#include "util.h"
+#include "l2cap_lib.h"
+#include "mgmt_lib.h"
+#include "eir.h"
+#include "glib-helper.h"
+
+#ifndef true
+#define true 1
+#endif
+#ifndef false
+#define false 0
+#endif
+
+#ifndef bool
+#define bool int
+#endif
 
 #ifndef NULL
 #define NULL (void*)0
@@ -117,7 +146,7 @@ CRT_FUNCDECL(int, libcrt_poweroff,(void));
 
 CRT_FUNCDECL(float,  percent,(unsigned int total_marks,unsigned int scored));
 CRT_FUNCDECL(int, xgetdate,(char *buffer));
-CRT_FUNCDECL(void, hexdump,(const unsigned char *src, size_t len, unsigned long fp));
+CRT_FUNCDECL(void, zhexdump,(const unsigned char *src, size_t len, unsigned long fp));
 
 extern
 unsigned int crt_count;
@@ -950,9 +979,17 @@ extern int libvbt_state;
 
 struct libvbt_list_t
 {
+    int dev_id;
+
     char addr[18];
     char name[248];  
     char device[256];
+
+    char uclass[256];
+    char udesc[256];
+
+    bdaddr_t bdaddr; 
+
     struct libvbt_list_t *next;  
 };
 
@@ -960,15 +997,38 @@ struct libvbt_t
 {
     int s;
     int sock;
+    int fd;
+
+    int ctl;
+
+    int dev;
+    int dev_id;
+    bdaddr_t bdaddr; 
+
     struct sockaddr_rc address;
+    uint16_t handle;
+    char str[64];
 
     char addr[18];
     char name[248];
     char device[256];
+    char uclass[256];
+    char udesc[256];
+
+    int channel;
+    
+    char state[256];
+    char uname[256];
+    char uuid[256];
+    char user[256];
 
     inquiry_info *ii;
     
     int status;
+    //int handle;
+
+    int number;
+    int policy;
 
     unsigned int count;
     struct libvbt_list_t *list; 
@@ -991,6 +1051,63 @@ int libvbt_micp(struct libvbt_t *st, unsigned int list);
 
 
 int libvbt_smcl(struct libvbt_t *st);
+
+
+int libdbus_address(struct libvbt_t *st);
+int libdbus_audio(struct libvbt_t *st);
+int libdbus_devices(struct libvbt_t *st);
+int libdbus_micophone(struct libvbt_t *st);
+int libdbus_name(struct libvbt_t *st);
+
+void cmd_init(struct libvbt_t *st);
+void cmd_close(struct libvbt_t *st);
+void cmd_create(int ctl, int dev, bdaddr_t *bdaddr, struct libvbt_t *st);
+void cmd_release(int ctl, int dev, bdaddr_t *bdaddr, struct libvbt_t *st);
+void cmd_list(struct libvbt_t *st);
+void cmd_connect(int ctl, int dev, bdaddr_t *bdaddr, struct libvbt_t *st);
+void cmd_listen(int ctl, int dev, bdaddr_t *bdaddr, struct libvbt_t *st);
+void cmd_ifcom(char *device);
+
+void cmd_dev(int dev_id, struct libvbt_t *st);
+void cmd_inq(int dev_id, struct libvbt_t *st);
+void cmd_scan(int dev_id, struct libvbt_t *st);
+void cmd_name(int dev_id, struct libvbt_t *st);
+void cmd_info(int dev_id, struct libvbt_t *st);
+void cmd_spinq(int dev_id, struct libvbt_t *st);
+void cmd_epinq(int dev_id, struct libvbt_t *st);
+void cmd_cmd(int dev_id, struct libvbt_t *st);
+void cmd_con(int dev_id, struct libvbt_t *st);
+void cmd_cc(int dev_id, struct libvbt_t *st);
+void cmd_dc(int dev_id, struct libvbt_t *st);
+void cmd_sr(int dev_id, struct libvbt_t *st);
+void cmd_rssi(int dev_id, struct libvbt_t *st);
+void cmd_lq(int dev_id, struct libvbt_t *st);
+void cmd_tpl(int dev_id, struct libvbt_t *st);
+void cmd_afh(int dev_id, struct libvbt_t *st);
+void cmd_cpt(int dev_id, struct libvbt_t *st);
+void cmd_lp(int dev_id, struct libvbt_t *st);
+void cmd_lst(int dev_id, struct libvbt_t *st);
+void cmd_auth(int dev_id, struct libvbt_t *st);
+void cmd_enc(int dev_id, struct libvbt_t *st);
+void cmd_key(int dev_id, struct libvbt_t *st);
+void cmd_clkoff(int dev_id, struct libvbt_t *st);
+void cmd_clock(int dev_id, struct libvbt_t *st);
+void cmd_lescan(int dev_id, struct libvbt_t *st);
+void cmd_lecc(int dev_id, struct libvbt_t *st);
+void cmd_lewladd(int dev_id, struct libvbt_t *st);
+void cmd_lewlrm(int dev_id, struct libvbt_t *st);
+void cmd_lewlsz(int dev_id, struct libvbt_t *st);
+void cmd_lewlclr(int dev_id, struct libvbt_t *st);
+void cmd_ledc(int dev_id, struct libvbt_t *st);
+void cmd_lecup(int dev_id, struct libvbt_t *st);
+
+
+
+void hci_init(struct libvbt_t *st);
+void hci_update(struct libvbt_t *st, struct libvbt_list_t *upd);
+
+
+#define cmd_update(s,p) libvbt_update(s,p)
 
 #endif
 

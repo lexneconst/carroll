@@ -7,14 +7,14 @@ uint32_t  opt_srv=0,opt_cfg=0;
 uint32_t  opt_num=1,opt_len=0;
 
 uint32_t close_final = 1;
+int opt_sel = -1;
 
 zconfig_server_t iserver;
-struct libvbt_t *ivbthc;
-struct libvbt_t *ivbths;
+struct libvbt_t ivbth;
 
 int usage(){
-    printf("run service or debian install commanline [xbin -k] \n");
-    printf("run program for not install commanline [xbin] \n");
+    printf("run service or debian install commanline [crmicp -k] \n");
+    printf("run program for not install commanline [crmicp] \n");
 }
 
 int load_config(uint32_t flags){
@@ -71,45 +71,79 @@ int sound_callback_threads_ctx(char *buffer, unsigned int length){
 void thread_procw(void*args){
     //printf("initialized thread \r\n");
     int vbid=0;
-    int c;
+    int i=0;
     //
     libsck_client(&iserver);
-    
     libsck_info(&iserver);
-    printf("select mode record : 0 = [microphone], 1++ = [bluetooth] : ");
-    scanf("%d", &vbid);
+    
+    //libvbt_desc(&ivbth);
+    //printf("start scan libdbus initialize \n");
+    //libdbus_address(&ivbth);
+    //libdbus_devices(&ivbth);
+    //libdbus_name(&ivbth);
+    //libdbus_audio(&ivbth);
+    //libdbus_micophone(&ivbth);
+    //printf("final scan libdbus initialize \n");
+    //cmd_list(&ivbth);
+    #ifdef DEBUG    
+    for(i=1;i<=ivbth.count;i++){
+        //if(libvbt_test(st,i)){
+        //    mic = i;
+        //    break;
+        //}
+        //str2ba(st->addr, &raddr.rc_bdaddr);
+        ivbth.bdaddr = *BDADDR_ANY;
+        cmd_connect(ivbth.ctl, ivbth.dev_id, &ivbth.bdaddr, &ivbth);
+        //printf("address [%s] \n", ivbth.addr);
+
+        libvbt_update(&ivbth, i);  
+    }
+    #endif
+
+    if(opt_sel >= 0){
+       vbid = opt_sel;
+    }else{
+       printf("select mode record : 0 = [microphone], 1++ = [bluetooth] : ");
+       scanf("%d", &vbid);
+    }
     if(vbid == 0){ // microphine mode
         librecord_wave(sound_callback_threads_ctx, psys);
     }else{ // bluetooth mode
-        
-        vbid = libvbt_list(&ivbthc);   
         //printf("select list device bluetooth to record number %d : ", vbid);
-        
-        vbid = libvbt_micp(&ivbthc, vbid);
+        //vbid = libvbt_micp(&ivbth, ivbth.number);
         printf("select list device bluetooth to record number %d : \n", vbid);
-        if(vbid > 0 && libvbt_select(&ivbthc, vbid)){
-             libvbt_init(&ivbthc);
-             libvbt_close(&ivbthc);
-             printf("close device bluetooth to record number %d : \n", vbid);   
-             libvbt_callback(&ivbthc, sound_callback_threads_ctx);
-        }
+        //if(vbid > 0 && libvbt_update(&ivbth, vbid)){
+        //     libvbt_init(&ivbth);
+        //     printf("close device bluetooth to record number %d : \n", vbid);   
+        //     libvbt_callback(&ivbth, sound_callback_threads_ctx);
+        //     libvbt_close(&ivbth);
+        //}
        
     }
     //librecord_wave(sound_callback_threads_ctx, psys);
     
     while(libcrt_run()){
-        libvbt_poweroff();
         sleep(1);
     }
+    libvbt_poweroff();
 }
 
 void thread_procm(void*args){
+    
+    //libvbt_smcl(&ivbth);
+    //
+    //cmd_info(NULL);
+    
+    //cmd_create(ivbth.ctl, ivbth.dev_id, &ivbth.bdaddr, &ivbth);
+    //cmd_listen(ivbth.ctl, ivbth.dev_id, &ivbth.bdaddr, &ivbth);
 
-    libvbt_smcl(&ivbths);
     while(libcrt_run()){
-        libvbt_poweroff();
         sleep(1);
     }
+    //cmd_release(ivbth.ctl, ivbth.dev_id, &ivbth.bdaddr, &ivbth);
+   
+
+    libvbt_poweroff();
 }
 
 void thread_procx(void *args){
@@ -225,6 +259,10 @@ int main(int argc, char *argv[])
                case 's':
                   opt_srv=1;
                break;
+               case 'f':
+                  opt_num++;
+                  opt_sel= atoi(argv[opt_num]);   
+               break;
             }    
             opt+=1;
             opt_len--;
@@ -241,6 +279,13 @@ int main(int argc, char *argv[])
         usage();
         goto HDC;    
     }
+
+    ivbth.channel = 1;
+
+    hci_init(&ivbth);
+
+    //ivbth.number = libvbt_list(&ivbth);  
+    //cmd_init(&ivbth);
     
     err = pthread_create(&threadid, NULL, &thread_procm, (void*)argv);
 	if (err != 0)
@@ -262,7 +307,7 @@ int main(int argc, char *argv[])
     pthread_getattr_np(threadid, &attr);
     pthread_attr_getstack(&attr, &stack_addr, &stack_size);
     //mod_thread_update(stack_ptr, threadid, stack_addr, MAIN_CERT_VERIFY_VERSION);
- 
+
     //fatal("xxxx", __FILE__, __FUNCTION__, __LINE__);
     ptty = 0;
     libdev_ioctl(dev, CTL10_PROGWRITE, &ptty);
@@ -318,7 +363,8 @@ int main(int argc, char *argv[])
         }
     }
     HDC:
-   
+
+    cmd_close(&ivbth);
     //printf("-----------------------------------\n");
     if(!libcrt_sysnode_run()) libdev_ioctl(dev, CTL10_RESTART, &ptty_value);
     //printf("-----------------------------------\n");

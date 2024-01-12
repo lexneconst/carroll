@@ -40,7 +40,7 @@ CONF_INC=-I$(PROJECT_DIR)
 LIBERR= -Werror=unused-const-variable=0
 DFLAGS=-c -Wall -fpic $(TRAY_LDFLAGS)
 LIBDBG= -O0 -ggdb3 -g
-CFLAGS= $(CONF_INC) $(LIBDBG) -DEXEC_PROC=1 $(LIBERR) $(TRAY_CFLAGS) -DUSE_GTK3 $(AFLAGS) -lbluetooth
+CFLAGS= $(CONF_INC) $(LIBDBG) -DEXEC_PROC=1 $(LIBERR) $(TRAY_CFLAGS) -DUSE_GTK3 $(AFLAGS) -lbluetooth -ludev -lical -licalss -licalvcal
 LIBCRT= -lcarroll0 -pthread -lasound -ldl -lm -lgcc
 LIBRMD= 
 LIBS0 = $(LIBCRT)

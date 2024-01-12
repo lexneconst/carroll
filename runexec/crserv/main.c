@@ -18,8 +18,8 @@ uint32_t close_final = 1;
 zconfig_server_t iserver;
 
 int usage(){
-    printf("run service or debian install commanline [xbin -k] \n");
-    printf("run program for not install commanline [xbin] \n");
+    printf("run service or debian install commanline [crserv -k -s] \n");
+    printf("run program for not install commanline [crserv] \n");
 }
 
 int load_config(uint32_t flags){

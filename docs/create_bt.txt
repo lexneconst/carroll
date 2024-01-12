@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/hci.h>
+#include <bluetooth/rfcomm.h>
+
+int main() {
+    struct sockaddr_rc local_addr = { 0 };
+    int sock, status;
+    struct rfcomm_dev_req dev_req;
+
+    // Create a Bluetooth socket
+    sock = socket(AF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
+    if (sock < 0) {
+        perror("Error opening socket");
+        exit(1);
+    }
+
+    // Set the connection parameters
+    local_addr.rc_family = AF_BLUETOOTH;
+    local_addr.rc_bdaddr = *BDADDR_ANY;
+    local_addr.rc_channel = (uint8_t)1;  // RFCOMM channel to use (1-30)
+
+    // Bind the socket to the local address
+    if (bind(sock, (struct sockaddr*)&local_addr, sizeof(local_addr)) < 0) {
+        perror("Bind error");
+        close(sock);
+        exit(1);
+    }
+
+    // Initialize the rfcomm_dev_req structure
+    memset(&dev_req, 0, sizeof(dev_req));
+    dev_req.dev_id = hci_get_route(NULL);
+    str2ba("00:01:02:03:04:05", &dev_req.bdaddr);  // Replace with the desired Bluetooth address
+
+    // Create the RFCOMM device
+    status = ioctl(sock, RFCOMMCREATED, &dev_req);
+    if (status < 0) {
+        perror("Error during RFCOMMCREATED ioctl");
+        close(sock);
+        exit(1);
+    }
+
+    printf("RFCOMM device created successfully.\n");
+
+    // Handle the connection as needed
+
+    // Close the socket
+    close(sock);
+
+    return 0;
+}
+

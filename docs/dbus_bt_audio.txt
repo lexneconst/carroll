@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <string.h>
+#include <dbus/dbus.h>
+
+#define BLUEZ_SERVICE "org.bluez"
+#define DEVICE_INTERFACE "org.freedesktop.DBus.Properties"
+#define DEVICE_PROPERTY "Connected"
+
+int main() {
+    DBusError err;
+    DBusConnection *conn;
+    DBusMessage *msg;
+    DBusMessageIter iter;
+    int connected = 0;
+
+    // Initialize the D-Bus error object
+    dbus_error_init(&err);
+
+    // Connect to the system bus
+    conn = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+    if (dbus_error_is_set(&err)) {
+        fprintf(stderr, "D-Bus connection error: %s\n", err.message);
+        dbus_error_free(&err);
+        return 1;
+    }
+
+    // Replace "hci0" with the correct Bluetooth adapter
+    const char *adapter_path = "/org/bluez/hci0";
+
+    // Replace "00:00:00:00:00:00" with the correct Bluetooth device address
+    const char *device_address = "00:00:00:00:00:00";
+
+    // Create a message to get the device properties
+    char device_path[64];
+    snprintf(device_path, sizeof(device_path), "%s/dev_%s", adapter_path, device_address);
+    msg = dbus_message_new_method_call(BLUEZ_SERVICE, device_path, DEVICE_INTERFACE, "GetAll");
+    if (!msg) {
+        fprintf(stderr, "Error creating D-Bus message\n");
+        return 1;
+    }
+
+    // Append the interface and property to the message
+    dbus_message_append_args(msg, DBUS_TYPE_STRING, &DEVICE_INTERFACE, DBUS_TYPE_INVALID);
+
+    // Send the message and get a reply
+    if (!dbus_connection_send_with_reply_and_block(conn, msg, -1, &err)) {
+        fprintf(stderr, "D-Bus method call error: %s\n", err.message);
+        dbus_error_free(&err);
+        return 1;
+    }
+
+    // Parse the reply
+    if (!dbus_message_iter_init(msg, &iter)) {
+        fprintf(stderr, "Error initializing D-Bus message iterator\n");
+        return 1;
+    }
+
+    // Iterate through the returned properties
+    while (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_INVALID) {
+        DBusMessageIter variantIter;
+        dbus_message_iter_recurse(&iter, &variantIter);
+
+        if (dbus_message_iter_get_arg_type(&variantIter) == DBUS_TYPE_BOOLEAN) {
+            dbus_message_iter_get_basic(&variantIter, &connected);
+            printf("Audio status: %s\n", connected ? "Connected" : "Disconnected");
+            break;
+        }
+
+        dbus_message_iter_next(&iter);
+    }
+
+    // Free resources
+    dbus_message_unref(msg);
+    dbus_connection_unref(conn);
+
+    return 0;
+}
+
